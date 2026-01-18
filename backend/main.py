@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -9,7 +9,6 @@ from fpdf import FPDF
 import datetime
 import shutil
 from pypdf import PdfReader
-import re # Added for text cleaning
 
 # Load environment variables
 load_dotenv()
@@ -76,30 +75,35 @@ def analyze_policy(text, standard):
     except Exception as e:
         return f"AI Analysis Failed: {str(e)}"
 
-# --- 3. THE PDF PRINTER (Polished) ---
+# --- 3. THE PDF PRINTER (With Watermark & Signature) ---
 def create_pdf(analysis_text, filename="audit_report.pdf"):
     pdf = FPDF()
     pdf.add_page()
     
-    # Header
+    # --- A. THE WATERMARK (TRIAL MODE) ---
+    # We print this FIRST so it sits "behind" or at the top of everything
+    pdf.set_font("Arial", "B", 40)
+    pdf.set_text_color(220, 220, 220) # Light Grey
+    pdf.cell(0, 20, "TRIAL MODE - DRAFT", 0, 1, 'C') # Top Watermark
+    
+    # Reset color for normal text
+    pdf.set_text_color(0, 0, 0) 
+
+    # --- B. Header ---
     pdf.set_font("Arial", "B", 16)
     pdf.cell(0, 10, "COMPLIANCE AI | AUDIT REPORT", 0, 1, 'C')
-    pdf.line(10, 20, 200, 20)
+    pdf.line(10, 35, 200, 35) # Draw a line (moved down slightly)
     pdf.ln(10)
 
-    # Body
+    # --- C. Body (Cleaned) ---
     pdf.set_font("Arial", "", 12)
-    
-    # --- CLEANING THE ROBOT TEXT ---
-    # Remove Markdown stars (**bold**) and hashes (### Header)
+    # 1. Clean the robot text (** and ###)
     clean_text = analysis_text.replace("**", "").replace("### ", "").replace("## ", "")
-    
-    # Handle encoding issues (smart quotes, em-dashes)
+    # 2. Handle special characters
     safe_text = clean_text.encode('latin-1', 'replace').decode('latin-1')
-    
     pdf.multi_cell(0, 7, safe_text)
     
-    # Signature Block
+    # --- D. Signature Block ---
     pdf.ln(20)
     pdf.set_font("Arial", "B", 12)
     pdf.cell(0, 10, "_" * 60, 0, 1, 'C')
@@ -109,6 +113,12 @@ def create_pdf(analysis_text, filename="audit_report.pdf"):
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     pdf.cell(0, 8, f"Timestamp: {current_time}", 0, 1, 'C')
     pdf.cell(0, 8, "Auditor ID: AI-NIST-VERIFIER-001", 0, 1, 'C')
+    
+    # --- E. The Upsell Warning ---
+    pdf.ln(5)
+    pdf.set_font("Arial", "B", 10)
+    pdf.set_text_color(255, 0, 0) # Red
+    pdf.cell(0, 10, "UNVERIFIED DRAFT - UPGRADE TO REMOVE WATERMARK", 0, 1, 'C')
     
     # Save
     report_filename = f"Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
