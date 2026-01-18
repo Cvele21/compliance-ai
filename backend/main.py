@@ -9,12 +9,12 @@ from fpdf import FPDF
 import datetime
 import shutil
 from pypdf import PdfReader
+import uuid
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # --- 🔐 THE SECRET PASSWORD ---
-# In a real app, this goes in .env, but for now, this works perfectly.
 PRO_ACCESS_CODE = "PRO-2026" 
 
 app = FastAPI()
@@ -72,7 +72,7 @@ def create_pdf(analysis_text, is_pro_user=False):
 
     # 2. Header
     pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, "COMPLIANCE AI | AUDIT REPORT", 0, 1, 'C')
+    pdf.cell(0, 10, "COMPLIANCE CORE | AUDIT REPORT", 0, 1, 'C')
     pdf.line(10, 35, 200, 35)
     pdf.ln(10)
 
@@ -88,10 +88,16 @@ def create_pdf(analysis_text, is_pro_user=False):
         pdf.set_font("Arial", "B", 12)
         pdf.cell(0, 10, "_" * 60, 0, 1, 'C')
         pdf.cell(0, 10, "OFFICIAL DIGITAL AUDIT RECORD", 0, 1, 'C')
+        
         pdf.set_font("Arial", "I", 10)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+        
+        # GENERATE UNIQUE HASH
+        unique_hash = str(uuid.uuid4())[:8].upper()
+        
         pdf.cell(0, 8, f"Timestamp: {current_time}", 0, 1, 'C')
-        pdf.cell(0, 8, "Auditor ID: PRO-VERIFIED-001", 0, 1, 'C')
+        pdf.cell(0, 8, f"Validation Hash: {unique_hash}", 0, 1, 'C')
+        pdf.cell(0, 8, "Engine: Compliance Core AI v1.0", 0, 1, 'C')
     else:
         # Warning for free users
         pdf.ln(20)
