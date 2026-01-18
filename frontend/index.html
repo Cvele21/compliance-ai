@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compliance AI</title>
+    <title>Compliance Core</title>
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .select-container { margin-top: 30px; text-align: center; width: 100%; }
@@ -16,9 +16,16 @@
         .legal-box { background-color: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; width: 90%; max-width: 600px; font-size: 14px; color: #cbd5e1; display: flex; align-items: flex-start; gap: 15px; box-sizing: border-box; }
         .legal-box input { margin-top: 4px; transform: scale(1.5); flex-shrink: 0; }
         
-        /* ACCESS CODE INPUT */
-        .code-input {
+        /* ACCESS CODE INPUT & LINK */
+        .code-container {
             margin-top: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .code-input {
             padding: 8px;
             background: #1e293b;
             border: 1px solid #64748b;
@@ -28,6 +35,15 @@
             text-align: center;
             letter-spacing: 2px;
         }
+        .request-link {
+            color: #3b82f6;
+            font-size: 13px;
+            text-decoration: none;
+            border-bottom: 1px dashed #3b82f6;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .request-link:hover { opacity: 1; }
 
         #report-container { display: none; width: 90%; max-width: 800px; background-color: #1e293b; border: 1px solid #475569; border-radius: 8px; margin-top: 30px; padding: 20px; box-sizing: border-box; overflow-x: hidden; }
         .btn-container { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
@@ -48,8 +64,11 @@
         </select>
     </div>
 
-    <div style="text-align: center;">
+    <div class="code-container">
         <input type="text" id="access-code" class="code-input" placeholder="ENTER PRO CODE">
+        <a href="mailto:contact@compliance-core.com?subject=Request%20Pro%20Access&body=Hi%20Compliance%20Core%20Team%2C%0A%0AI%20would%20like%20to%20purchase%20a%20Pro%20Access%20Code%20for%20%2449.%0A%0APlease%20send%20the%20invoice." class="request-link">
+            Need a code? Request Access ($49)
+        </a>
     </div>
 
     <div class="legal-box">
@@ -110,7 +129,7 @@
             const formData = new FormData();
             formData.append('file', file);
             formData.append('standard', document.getElementById('standard-select').value);
-            formData.append('access_code', accessCodeInput.value); // SEND THE CODE
+            formData.append('access_code', accessCodeInput.value); 
 
             const uploadUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000/upload' : '/upload'; 
 
