@@ -3,93 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compliance AI | Universal Auditor</title>
+    <title>Compliance AI</title>
     <style>
-        body { 
-            background-color: #0f172a; 
-            color: #e2e8f0; 
-            font-family: 'Segoe UI', monospace; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px; 
-            box-sizing: border-box; 
-        }
-        
-        /* The Switch */
+        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .select-container { margin-top: 30px; text-align: center; width: 100%; }
-        select { 
-            background-color: #1e293b; 
-            color: white; 
-            padding: 10px 20px; 
-            font-size: 16px; 
-            border: 1px solid #3b82f6; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            outline: none; 
-            max-width: 100%; 
-        }
+        select { background-color: #1e293b; color: white; padding: 10px 20px; font-size: 16px; border: 1px solid #3b82f6; border-radius: 5px; max-width: 100%; }
         
-        /* The Locked Drop Zone (Mobile Fixed) */
-        .drop-zone { 
-            width: 90%; max-width: 600px; height: 200px; 
-            border: 2px dashed #475569; border-radius: 10px; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            background-color: #1e293b; margin-top: 20px; 
-            transition: all 0.3s; opacity: 0.5; pointer-events: none; 
-            text-align: center; padding: 10px; box-sizing: border-box;
-        }
+        .drop-zone { width: 90%; max-width: 600px; height: 200px; border: 2px dashed #475569; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #1e293b; margin-top: 20px; transition: all 0.3s; opacity: 0.5; pointer-events: none; text-align: center; padding: 10px; box-sizing: border-box; }
         .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: all; cursor: pointer; }
-        .drop-zone.unlocked:hover { background-color: #334155; }
         .drop-zone.loading { border-color: #fbbf24; cursor: wait; }
 
-        /* The Disclaimer Box */
-        .legal-box { 
-            background-color: #1e293b; border: 1px solid #ef4444; 
-            padding: 15px; border-radius: 8px; margin-top: 20px; 
-            width: 90%; max-width: 600px; 
-            font-size: 14px; color: #cbd5e1; 
-            display: flex; align-items: flex-start; gap: 15px; box-sizing: border-box;
-        }
+        .legal-box { background-color: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; width: 90%; max-width: 600px; font-size: 14px; color: #cbd5e1; display: flex; align-items: flex-start; gap: 15px; box-sizing: border-box; }
+        .legal-box input { margin-top: 4px; transform: scale(1.5); flex-shrink: 0; }
         
-        .legal-box input { margin-top: 4px; transform: scale(1.5); flex-shrink: 0; cursor: pointer; }
-        .legal-text { line-height: 1.4; }
-        .highlight { color: #ef4444; font-weight: bold; }
-
-        /* Report Container */
-        #report-container { 
-            display: none; width: 90%; max-width: 800px; 
-            background-color: #1e293b; border: 1px solid #475569; 
-            border-radius: 8px; margin-top: 30px; padding: 20px; box-sizing: border-box;
-            overflow-x: hidden; 
-        }
-        
-        /* Buttons Container */
-        .btn-container {
-            display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;
+        /* ACCESS CODE INPUT */
+        .code-input {
+            margin-top: 15px;
+            padding: 8px;
+            background: #1e293b;
+            border: 1px solid #64748b;
+            color: white;
+            border-radius: 5px;
+            width: 200px;
+            text-align: center;
+            letter-spacing: 2px;
         }
 
-        .btn-download { 
-            background-color: #22c55e; color: black; font-weight: bold; 
-            padding: 15px 30px; border: none; border-radius: 5px; 
-            cursor: pointer; text-decoration: none; text-align: center;
-            display: inline-block; flex: 1; min-width: 200px;
-        }
-
-        .btn-upgrade {
-            background-color: #3b82f6; color: white; font-weight: bold;
-            padding: 15px 30px; border: none; border-radius: 5px;
-            cursor: pointer; text-decoration: none; text-align: center;
-            display: inline-block; flex: 1; min-width: 200px;
-        }
-        
-        pre { 
-            white-space: pre-wrap; word-wrap: break-word; 
-            color: #cbd5e1; line-height: 1.5; 
-            font-family: 'Courier New', monospace; font-size: 13px; 
-        }
+        #report-container { display: none; width: 90%; max-width: 800px; background-color: #1e293b; border: 1px solid #475569; border-radius: 8px; margin-top: 30px; padding: 20px; box-sizing: border-box; overflow-x: hidden; }
+        .btn-container { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+        .btn-download { background-color: #22c55e; color: black; font-weight: bold; padding: 15px 30px; border-radius: 5px; text-decoration: none; flex: 1; min-width: 200px; text-align: center; }
+        .btn-upgrade { background-color: #3b82f6; color: white; font-weight: bold; padding: 15px 30px; border-radius: 5px; text-decoration: none; flex: 1; min-width: 200px; text-align: center; }
+        pre { white-space: pre-wrap; word-wrap: break-word; color: #cbd5e1; font-family: 'Courier New', monospace; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -104,29 +48,23 @@
         </select>
     </div>
 
+    <div style="text-align: center;">
+        <input type="text" id="access-code" class="code-input" placeholder="ENTER PRO CODE">
+    </div>
+
     <div class="legal-box">
         <input type="checkbox" id="legal-check">
-        <div class="legal-text">
-            <strong>REQUIRED:</strong> I understand that this report is generated by AI for <span class="highlight">educational and readiness purposes only</span>. It does NOT constitute legal advice.
-        </div>
+        <div style="line-height: 1.4;"><strong>REQUIRED:</strong> I understand this is for <span style="color:#ef4444; font-weight:bold;">educational purposes only</span>. Not legal advice.</div>
     </div>
 
-    <div id="drop-zone" class="drop-zone">
-        <div style="font-size: 40px;">📂</div>
-        <h3 id="status-text">Check Box Above to Unlock</h3>
-    </div>
+    <div id="drop-zone" class="drop-zone"><div style="font-size: 40px;">📂</div><h3 id="status-text">Check Box Above to Unlock</h3></div>
 
     <div id="report-container">
-        
         <div class="btn-container">
-            <a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD DRAFT</a>
-            
-            <a href="mailto:contact@compliance-core.com?subject=Unlock%20Pro%20Request&body=Hello%20Compliance%20Core%20Team%2C%0A%0AI%20am%20interested%20in%20upgrading%20to%20the%20Pro%20version%20to%20remove%20the%20watermark%20and%20get%20official%20compliance%20certificates.%0A%0APlease%20send%20me%20information%20on%20pricing%20and%20next%20steps." class="btn-upgrade">
-                ⭐ UNLOCK PRO
-            </a>
+            <a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD REPORT</a>
+            <a id="upgrade-link" href="mailto:contact@compliance-core.com?subject=Unlock%20Pro" class="btn-upgrade">⭐ UNLOCK PRO</a>
         </div>
-
-        <h3 id="report-title">📋 AUDIT RESULTS</h3>
+        <h3 id="report-title">📋 RESULTS</h3>
         <pre id="report-content">Analysis...</pre>
     </div>
 
@@ -134,74 +72,65 @@
         const dropZone = document.getElementById('drop-zone');
         const statusText = document.getElementById('status-text');
         const legalCheck = document.getElementById('legal-check');
-        const standardSelect = document.getElementById('standard-select');
+        const accessCodeInput = document.getElementById('access-code');
         const reportContainer = document.getElementById('report-container');
         const reportContent = document.getElementById('report-content');
         const downloadLink = document.getElementById('download-link');
+        const upgradeLink = document.getElementById('upgrade-link');
 
-        // UNLOCK LOGIC
         legalCheck.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                dropZone.classList.add('unlocked');
-                statusText.innerText = "Tap to Upload Policy PDF"; 
-            } else {
-                dropZone.classList.remove('unlocked');
-                statusText.innerText = "Check Box Above to Unlock";
-            }
+            dropZone.classList.toggle('unlocked', e.target.checked);
+            statusText.innerText = e.target.checked ? "Tap to Upload Policy PDF" : "Check Box Above to Unlock";
         });
 
-        // CLICK UPLOAD
-        dropZone.addEventListener('click', () => {
-            if (legalCheck.checked) {
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.accept = 'application/pdf';
-                fileInput.onchange = (e) => handleFile(e.target.files[0]);
-                fileInput.click();
-            }
-        });
-
-        // DRAG DROP UPLOAD
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
-        });
-
+        dropZone.addEventListener('click', () => { if (legalCheck.checked) document.createElement('input').click(); });
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); }, false));
+        
         dropZone.addEventListener('drop', (e) => {
             if (!legalCheck.checked) return;
             handleFile(e.dataTransfer.files[0]);
         }, false);
 
-        // HANDLE FILE
+        // Mobile Click
+        dropZone.addEventListener('click', () => {
+            if (legalCheck.checked) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/pdf';
+                input.onchange = e => handleFile(e.target.files[0]);
+                input.click();
+            }
+        });
+
         function handleFile(file) {
-            if (!file) return;
-            
-            const selectedStandard = standardSelect.value;
-            statusText.innerText = `🧠 Auditing against ${selectedStandard}...`;
+            statusText.innerText = "🧠 Analyzing...";
             dropZone.classList.add('loading');
             reportContainer.style.display = 'none';
 
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('standard', selectedStandard);
+            formData.append('standard', document.getElementById('standard-select').value);
+            formData.append('access_code', accessCodeInput.value); // SEND THE CODE
 
-            // AUTO DETECT URL
-            const uploadUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? 'http://127.0.0.1:8000/upload' 
-                : '/upload'; 
+            const uploadUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000/upload' : '/upload'; 
 
             fetch(uploadUrl, { method: 'POST', body: formData })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 dropZone.classList.remove('loading');
                 statusText.innerText = "✅ Complete";
                 reportContainer.style.display = 'block';
-                document.getElementById('report-title').innerText = `📋 RESULTS: ${selectedStandard}`;
                 reportContent.innerText = data.report;
                 downloadLink.href = data.pdf_url;
-                
                 reportContainer.scrollIntoView({ behavior: 'smooth' });
+
+                // If code worked, hide the upgrade button!
+                if (data.is_pro) {
+                    upgradeLink.style.display = 'none';
+                    downloadLink.innerText = "📄 DOWNLOAD OFFICIAL CERTIFICATE";
+                }
             })
-            .catch(error => { console.error(error); statusText.innerText = "Error"; });
+            .catch(e => { console.error(e); statusText.innerText = "Error"; });
         }
     </script>
 </body>
