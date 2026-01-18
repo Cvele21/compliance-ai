@@ -5,27 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compliance AI | Universal Auditor</title>
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        body { 
+            background-color: #0f172a; 
+            color: #e2e8f0; 
+            font-family: 'Segoe UI', monospace; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px; 
+            box-sizing: border-box; /* Crucial for mobile padding */
+        }
         
         /* The Switch */
-        .select-container { margin-top: 30px; text-align: center; }
-        select { background-color: #1e293b; color: white; padding: 10px 20px; font-size: 16px; border: 1px solid #3b82f6; border-radius: 5px; cursor: pointer; outline: none; }
+        .select-container { margin-top: 30px; text-align: center; width: 100%; }
+        select { 
+            background-color: #1e293b; 
+            color: white; 
+            padding: 10px 20px; 
+            font-size: 16px; 
+            border: 1px solid #3b82f6; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            outline: none; 
+            max-width: 100%; 
+        }
         
-        /* The Locked Drop Zone */
-        .drop-zone { width: 600px; height: 200px; border: 2px dashed #475569; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #1e293b; margin-top: 20px; transition: all 0.3s; opacity: 0.5; pointer-events: none; /* Locked by default */ }
+        /* The Locked Drop Zone (Mobile Fixed) */
+        .drop-zone { 
+            width: 90%;             /* Fits phone screens */
+            max-width: 600px;       /* Stops getting huge on laptop */
+            height: 200px; 
+            border: 2px dashed #475569; 
+            border-radius: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            background-color: #1e293b; 
+            margin-top: 20px; 
+            transition: all 0.3s; 
+            opacity: 0.5; 
+            pointer-events: none; 
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
         .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: all; cursor: pointer; }
         .drop-zone.unlocked:hover { background-color: #334155; }
         .drop-zone.loading { border-color: #fbbf24; cursor: wait; }
 
-        /* The Disclaimer Box */
-        .legal-box { background-color: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; width: 600px; font-size: 14px; color: #cbd5e1; display: flex; align-items: flex-start; gap: 10px; }
-        .legal-box input { margin-top: 4px; transform: scale(1.2); cursor: pointer; }
+        /* The Disclaimer Box (Mobile Fixed) */
+        .legal-box { 
+            background-color: #1e293b; 
+            border: 1px solid #ef4444; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            width: 90%;             /* Fits phone screens */
+            max-width: 600px; 
+            font-size: 14px; 
+            color: #cbd5e1; 
+            display: flex; 
+            align-items: flex-start; /* Aligns checkbox to top of text */
+            gap: 15px;              /* Space between box and text */
+            box-sizing: border-box;
+        }
+        
+        /* Big Checkbox for Thumbs */
+        .legal-box input { 
+            margin-top: 4px; 
+            transform: scale(1.5);  /* Bigger touch target */
+            flex-shrink: 0;         /* CRITICAL: Stops box from being squished */
+            cursor: pointer; 
+        }
+        
         .legal-text { line-height: 1.4; }
         .highlight { color: #ef4444; font-weight: bold; }
 
-        #report-container { display: none; width: 800px; background-color: #1e293b; border: 1px solid #475569; border-radius: 8px; margin-top: 30px; padding: 20px; }
-        .btn-download { background-color: #22c55e; color: black; font-weight: bold; padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 20px; }
-        pre { white-space: pre-wrap; color: #cbd5e1; line-height: 1.5; font-family: 'Courier New', monospace; }
+        /* Report Container (Mobile Fixed) */
+        #report-container { 
+            display: none; 
+            width: 90%; 
+            max-width: 800px; 
+            background-color: #1e293b; 
+            border: 1px solid #475569; 
+            border-radius: 8px; 
+            margin-top: 30px; 
+            padding: 20px; 
+            box-sizing: border-box;
+            overflow-x: hidden; /* Prevents side scrolling */
+        }
+        
+        .btn-download { 
+            background-color: #22c55e; 
+            color: black; 
+            font-weight: bold; 
+            padding: 15px 30px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            display: block;         /* Full width on mobile usually better */
+            text-align: center;
+            margin-bottom: 20px; 
+        }
+        
+        /* Text Wrapping */
+        pre { 
+            white-space: pre-wrap; 
+            word-wrap: break-word; /* Forces long text to wrap on phone */
+            color: #cbd5e1; 
+            line-height: 1.5; 
+            font-family: 'Courier New', monospace; 
+            font-size: 13px;       /* Slightly smaller for mobile readability */
+        }
     </style>
 </head>
 <body>
@@ -53,7 +148,7 @@
     </div>
 
     <div id="report-container">
-        <div style="text-align: right;"><a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD CERTIFICATE</a></div>
+        <div style="text-align: center;"><a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD CERTIFICATE</a></div>
         <h3 id="report-title">📋 AUDIT RESULTS</h3>
         <pre id="report-content">Analysis...</pre>
     </div>
@@ -71,7 +166,7 @@
         legalCheck.addEventListener('change', (e) => {
             if (e.target.checked) {
                 dropZone.classList.add('unlocked');
-                statusText.innerText = "Drag & Drop Policy PDF";
+                statusText.innerText = "Tap to Upload Policy PDF"; // Changed text for mobile
             } else {
                 dropZone.classList.remove('unlocked');
                 statusText.innerText = "Check Box Above to Unlock";
@@ -79,16 +174,32 @@
         });
 
         // 2. UPLOAD LOGIC
+        // Handle clicking for mobile users who can't "drag and drop" easily
+        dropZone.addEventListener('click', () => {
+            if (legalCheck.checked) {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = 'application/pdf';
+                fileInput.onchange = (e) => handleFile(e.target.files[0]);
+                fileInput.click();
+            }
+        });
+
+        // Handle Desktop Drag & Drop
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
         });
 
         dropZone.addEventListener('drop', (e) => {
-            if (!legalCheck.checked) return; // Double protection
+            if (!legalCheck.checked) return;
+            handleFile(e.dataTransfer.files[0]);
+        }, false);
 
-            const file = e.dataTransfer.files[0];
+        // Unified File Handler
+        function handleFile(file) {
+            if (!file) return;
+            
             const selectedStandard = standardSelect.value;
-
             statusText.innerText = `🧠 Auditing against ${selectedStandard}...`;
             dropZone.classList.add('loading');
             reportContainer.style.display = 'none';
@@ -97,7 +208,13 @@
             formData.append('file', file);
             formData.append('standard', selectedStandard);
 
-            fetch('http://127.0.0.1:8000/upload', { method: 'POST', body: formData })
+            // Note: In production, change this URL to your Render URL if not on the same domain
+            // But since front/back are on same server, relative path or window.location is safer
+            const uploadUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? 'http://127.0.0.1:8000/upload' 
+                : '/upload'; 
+
+            fetch(uploadUrl, { method: 'POST', body: formData })
             .then(response => response.json())
             .then(data => {
                 dropZone.classList.remove('loading');
@@ -106,9 +223,12 @@
                 document.getElementById('report-title').innerText = `📋 RESULTS: ${selectedStandard}`;
                 reportContent.innerText = data.report;
                 downloadLink.href = data.pdf_url;
+                
+                // Scroll to results on mobile
+                reportContainer.scrollIntoView({ behavior: 'smooth' });
             })
             .catch(error => { console.error(error); statusText.innerText = "Error"; });
-        }, false);
+        }
     </script>
 </body>
 </html>
