@@ -1,14 +1,14 @@
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
 import os
 from dotenv import load_dotenv
 import openai
 from fpdf import FPDF
 import datetime
+import shutil
+from pypdf import PdfReader
 
 # Load environment variables
 load_dotenv()
@@ -16,7 +16,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
-# Enable CORS for local testing and production
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,19 +25,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve the frontend files
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
+# Create folders if they don't exist
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("reports", exist_ok=True)
 
+# Serve the frontend files for the PDF link
+app.mount("/reports", StaticFiles(directory="reports"), name="reports")
+
+# --- 1. THE FRONT DOOR (Updated) ---
+# This now serves the dashboard immediately at the root URL
 @app.get("/")
-def read_root():
-    return JSONResponse(content={"message": "Compliance AI is running"})
-
-# Serve the index.html directly
-@app.get("/app")
-async def read_index():
-    from fastapi.responses import FileResponse
+async def read_root():
     return FileResponse('frontend/index.html')
 
+# --- 2. THE AI BRAIN ---
 def analyze_policy(text, standard):
     prompt = f"""
     You are an expert Compliance Auditor for Federal Regulations.
@@ -61,67 +62,79 @@ def analyze_policy(text, standard):
     (Give a score out of 100 based on completeness.)
 
     POLICY TEXT:
-    {text[:4000]}
+    {text[:10000]}
     """
     
-    response = openai.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "system", "content": "You are a strict compliance auditor."},
-                  {"role": "user", "content": prompt}]
-    )
-    return response.choices[0].message.content
+    try:
+        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "system", "content": "You are a strict compliance auditor."},
+                      {"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"AI Analysis Failed: {str(e)}"
 
+# --- 3. THE PDF PRINTER (With Signature) ---
 def create_pdf(analysis_text, filename="audit_report.pdf"):
     pdf = FPDF()
     pdf.add_page()
     
-    # 1. Header
+    # Header
     pdf.set_font("Arial", "B", 16)
     pdf.cell(0, 10, "COMPLIANCE AI | AUDIT REPORT", 0, 1, 'C')
-    pdf.line(10, 20, 200, 20) # Draw a line
+    pdf.line(10, 20, 200, 20)
     pdf.ln(10)
 
-    # 2. The Analysis Body
+    # Body
     pdf.set_font("Arial", "", 12)
-    # Fix for special characters (smart quotes, etc)
+    # Handle encoding issues
     safe_text = analysis_text.encode('latin-1', 'replace').decode('latin-1')
-    pdf.multi_cell(0, 10, safe_text)
+    pdf.multi_cell(0, 7, safe_text)
     
-    # 3. THE OFFICIAL SIGNATURE BLOCK (New!)
-    pdf.ln(20) # Add space
+    # Signature Block
+    pdf.ln(20)
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "_" * 60, 0, 1, 'C') # The line
-    
+    pdf.cell(0, 10, "_" * 60, 0, 1, 'C')
     pdf.cell(0, 10, "OFFICIAL DIGITAL AUDIT RECORD", 0, 1, 'C')
     
     pdf.set_font("Arial", "I", 10)
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     pdf.cell(0, 8, f"Timestamp: {current_time}", 0, 1, 'C')
     pdf.cell(0, 8, "Auditor ID: AI-NIST-VERIFIER-001", 0, 1, 'C')
-    pdf.cell(0, 8, "Status: PRE-ASSESSMENT GENERATED", 0, 1, 'C')
     
-    # Save file
-    file_path = f"frontend/{filename}"
+    # Save
+    report_filename = f"Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    file_path = f"reports/{report_filename}"
     pdf.output(file_path)
-    return filename
+    return report_filename
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...), standard: str = Form(...)):
-    # 1. Read the PDF (Simulated text extraction for now)
-    # In a real app, we would use pypdf to extract text here.
-    # For this MVP, we will simulate reading text to save on complexity.
-    policy_text = "This is a sample policy text extracted from the PDF..." 
+    print(f"Processing {file.filename} for {standard}...")
     
-    # 2. AI Analysis
-    analysis = analyze_policy(policy_text, standard)
+    # 1. Save File
+    file_location = f"uploads/{file.filename}"
+    with open(file_location, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
     
-    # 3. Generate PDF with Signature
-    pdf_filename = f"report_{datetime.datetime.now().timestamp()}.pdf"
-    create_pdf(analysis, pdf_filename)
+    # 2. Extract Text
+    try:
+        reader = PdfReader(file_location)
+        text = ""
+        for page in reader.pages[:10]: # Read first 10 pages
+            text += page.extract_text()
+    except:
+        text = "Error reading PDF text."
+
+    # 3. Analyze
+    analysis = analyze_policy(text, standard)
     
-    # 4. Return URL
-    # On Render, the URL needs to be relative
-    return {"report": analysis, "pdf_url": f"{pdf_filename}"}
+    # 4. Print PDF
+    pdf_filename = create_pdf(analysis)
+    
+    return {"report": analysis, "pdf_url": f"/reports/{pdf_filename}"}
 
 if __name__ == "__main__":
     import uvicorn
