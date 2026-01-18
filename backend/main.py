@@ -9,6 +9,7 @@ from fpdf import FPDF
 import datetime
 import shutil
 from pypdf import PdfReader
+import re # Added for text cleaning
 
 # Load environment variables
 load_dotenv()
@@ -32,8 +33,7 @@ os.makedirs("reports", exist_ok=True)
 # Serve the frontend files for the PDF link
 app.mount("/reports", StaticFiles(directory="reports"), name="reports")
 
-# --- 1. THE FRONT DOOR (Updated) ---
-# This now serves the dashboard immediately at the root URL
+# --- 1. THE FRONT DOOR ---
 @app.get("/")
 async def read_root():
     return FileResponse('frontend/index.html')
@@ -76,7 +76,7 @@ def analyze_policy(text, standard):
     except Exception as e:
         return f"AI Analysis Failed: {str(e)}"
 
-# --- 3. THE PDF PRINTER (With Signature) ---
+# --- 3. THE PDF PRINTER (Polished) ---
 def create_pdf(analysis_text, filename="audit_report.pdf"):
     pdf = FPDF()
     pdf.add_page()
@@ -89,8 +89,14 @@ def create_pdf(analysis_text, filename="audit_report.pdf"):
 
     # Body
     pdf.set_font("Arial", "", 12)
-    # Handle encoding issues
-    safe_text = analysis_text.encode('latin-1', 'replace').decode('latin-1')
+    
+    # --- CLEANING THE ROBOT TEXT ---
+    # Remove Markdown stars (**bold**) and hashes (### Header)
+    clean_text = analysis_text.replace("**", "").replace("### ", "").replace("## ", "")
+    
+    # Handle encoding issues (smart quotes, em-dashes)
+    safe_text = clean_text.encode('latin-1', 'replace').decode('latin-1')
+    
     pdf.multi_cell(0, 7, safe_text)
     
     # Signature Block
@@ -123,7 +129,7 @@ async def upload_file(file: UploadFile = File(...), standard: str = Form(...)):
     try:
         reader = PdfReader(file_location)
         text = ""
-        for page in reader.pages[:10]: # Read first 10 pages
+        for page in reader.pages[:10]: 
             text += page.extract_text()
     except:
         text = "Error reading PDF text."
