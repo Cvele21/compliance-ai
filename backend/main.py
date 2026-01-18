@@ -135,10 +135,17 @@ async def upload_file(file: UploadFile = File(...), standard: str = Form(...), a
     # Analyze
     analysis = analyze_policy(text, standard)
     
-    # Print PDF (Pass the Pro Flag)
+        # Print PDF (Pass the Pro Flag)
     pdf_filename = create_pdf(analysis, is_pro)
     
+    # --- SECURITY CLEANUP ---
+    # Delete the uploaded user file immediately
+    if os.path.exists(file_location):
+        os.remove(file_location)
+        print(f"Deleted sensitive file: {file_location}")
+    
     return {"report": analysis, "pdf_url": f"/reports/{pdf_filename}", "is_pro": is_pro}
+
 
 if __name__ == "__main__":
     import uvicorn
