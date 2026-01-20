@@ -85,4 +85,102 @@
 
     <div class="help-text">
         <p><strong>SUGGESTED DOCUMENTS TO UPLOAD:</strong></p>
-        <div class="
+        <div class="tag-container">
+            <span class="tag">📄 Employee Handbook</span>
+            <span class="tag">🔒 Access Control Policy</span>
+            <span class="tag">🚨 Incident Response Plan</span>
+            <span class="tag">📘 System Security Plan (SSP)</span>
+        </div>
+    </div>
+
+    <div id="report-container">
+        <div class="btn-container">
+            <a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD REPORT</a>
+            <a id="upgrade-link" href="mailto:contact@compliance-core.com?subject=Unlock%20Pro" class="btn-upgrade">⭐ UNLOCK PRO</a>
+        </div>
+        <h3 id="report-title">📋 RESULTS</h3>
+        <pre id="report-content">Analysis...</pre>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const statusText = document.getElementById('status-text');
+        const iconDisplay = document.getElementById('icon-display');
+        const legalCheck = document.getElementById('legal-check');
+        const accessCodeInput = document.getElementById('access-code');
+        const reportContainer = document.getElementById('report-container');
+        const reportContent = document.getElementById('report-content');
+        const downloadLink = document.getElementById('download-link');
+        const upgradeLink = document.getElementById('upgrade-link');
+
+        legalCheck.addEventListener('change', (e) => {
+            dropZone.classList.toggle('unlocked', e.target.checked);
+            statusText.innerText = e.target.checked ? "Tap to Upload Policy PDF" : "Check Box Above to Unlock";
+        });
+
+        dropZone.addEventListener('click', () => { if (legalCheck.checked) document.createElement('input').click(); });
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); }, false));
+        
+        dropZone.addEventListener('drop', (e) => {
+            if (!legalCheck.checked) return;
+            handleFile(e.dataTransfer.files[0]);
+        }, false);
+
+        // Mobile Click Logic
+        dropZone.addEventListener('click', () => {
+            if (legalCheck.checked) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/pdf';
+                input.onchange = e => handleFile(e.target.files[0]);
+                input.click();
+            }
+        });
+
+        function handleFile(file) {
+            // UI Updates for Loading
+            statusText.innerText = "🧠 AI Analyzing...";
+            iconDisplay.innerText = "⚙️"; // Change icon to gear
+            iconDisplay.classList.add('spinning'); // Start spin animation
+            dropZone.classList.add('loading');
+            reportContainer.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('standard', document.getElementById('standard-select').value);
+            formData.append('access_code', accessCodeInput.value); 
+
+            // Auto-detect localhost vs production
+            const uploadUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000/upload' : '/upload'; 
+
+            fetch(uploadUrl, { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                // Remove Loading State
+                dropZone.classList.remove('loading');
+                iconDisplay.classList.remove('spinning');
+                iconDisplay.innerText = "✅";
+                statusText.innerText = "Analysis Complete";
+                
+                // Show Results
+                reportContainer.style.display = 'block';
+                reportContent.innerText = data.report;
+                downloadLink.href = data.pdf_url;
+                reportContainer.scrollIntoView({ behavior: 'smooth' });
+
+                // If Pro Code was used, update UI
+                if (data.is_pro) {
+                    upgradeLink.style.display = 'none';
+                    downloadLink.innerText = "📄 DOWNLOAD OFFICIAL CERTIFICATE";
+                }
+            })
+            .catch(e => { 
+                console.error(e); 
+                statusText.innerText = "Error - Try Again"; 
+                iconDisplay.classList.remove('spinning');
+                iconDisplay.innerText = "❌";
+            });
+        }
+    </script>
+</body>
+</html>
