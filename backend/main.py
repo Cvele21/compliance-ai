@@ -1,8 +1,8 @@
 import magic # Security library for file types
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-import time
+from fastapi.responses import HTMLResponse # <--- NEW IMPORT FOR SERVING HTML
+import os
 
 app = FastAPI()
 
@@ -10,7 +10,7 @@ app = FastAPI()
 # Allow the frontend to talk to this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, change this to ["https://compliance-core.com"]
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,17 +46,14 @@ def validate_pdf(file_content: bytes):
     Prevents hackers from uploading .exe files renamed as .pdf.
     """
     try:
-        # Create a magic object to detect mime type
         mime = magic.Magic(mime=True)
         file_type = mime.from_buffer(file_content)
         
-        # If the file signature isn't 'application/pdf', reject it
         if file_type != 'application/pdf':
             print(f"🚨 SECURITY ALERT: Invalid file type detected: {file_type}")
             raise HTTPException(status_code=400, detail="Security Alert: Invalid file format. Only true PDFs accepted.")
             
     except Exception as e:
-        # Fallback if magic fails (rare), but keeps system safe
         print(f"⚠️ Magic check warning: {e}")
         pass
 
@@ -75,14 +72,12 @@ async def upload_file(
     # 2. RUN SECURITY CHECK
     validate_pdf(content)
 
-    # 3. CHECK ACCESS CODE (Simple logic for now)
+    # 3. CHECK ACCESS CODE
     is_pro = False
-    if access_code and access_code.strip() == "USCG2026": # Example 'Pro' code
+    if access_code and access_code.strip() == "USCG2026": 
         is_pro = True
 
-    # 4. GENERATE REPORT (This simulates the AI Analysis)
-    # In the future, this is where you connect the LLM
-    
+    # 4. GENERATE MOCK REPORT
     report_text = f"""
     COMPLIANCE AUDIT REPORT
     -----------------------
@@ -106,16 +101,23 @@ async def upload_file(
     Update the Incident Response section to include DIBNet reporting requirements.
     """
 
-    # 5. RETURN RESPONSE TO FRONTEND
     return {
         "filename": file.filename,
         "status": "success",
         "report": report_text,
-        "pdf_url": "#", # Placeholder for the generated PDF link
+        "pdf_url": "#", 
         "is_pro": is_pro
     }
 
-# --- 5. HEALTH CHECK (For UptimeRobot) ---
-@app.get("/")
-def home():
-    return {"status": "System Online", "version": "1.0.2"}
+# --- 5. SERVE THE FRONTEND (THE FIX) ---
+@app.get("/", response_class=HTMLResponse)
+async def serve_home():
+    """
+    Serves the index.html file so users see the UI instead of JSON.
+    """
+    try:
+        # Tries to find the file in the frontend folder
+        with open("frontend/index.html", "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "<h1>Error: frontend/index.html not found.</h1><p>Please check your GitHub folder structure.</p>"
