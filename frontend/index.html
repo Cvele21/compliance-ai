@@ -3,103 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Core | AI Policy Auditor</title>
     
-    <title>Compliance Core | AI Audit for NIST 800-171 & CMMC</title>
-    <meta name="description" content="Automated compliance auditing for Defense Contractors. Upload your policy and get an instant gap analysis against NIST, HIPAA, and OSHA regulations.">
-    <meta name="keywords" content="NIST 800-171, CMMC, AI Auditor, GovCon, Compliance, Cybersecurity, Automation">
-    <meta name="author" content="Compliance Core Team">
-    
+    <meta name="description" content="Automated compliance auditing for Defense Contractors.">
     <meta property="og:title" content="Compliance Core | AI Policy Auditor">
     <meta property="og:description" content="75% of contractors fail NIST audits. Pre-check your compliance instantly with AI.">
-    <meta property="og:url" content="https://compliance-core.com">
-    <meta property="og:type" content="website">
     
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         
-        h1 { margin-bottom: 5px; }
+        h1 { margin-bottom: 5px; font-size: 24px; }
         p { margin-top: 0; color: #64748b; font-size: 14px; letter-spacing: 1px; }
 
-        .select-container { margin-top: 30px; text-align: center; width: 100%; }
-        select { background-color: #1e293b; color: white; padding: 10px 20px; font-size: 16px; border: 1px solid #3b82f6; border-radius: 5px; max-width: 100%; }
+        .select-container { margin-top: 20px; text-align: center; width: 100%; }
+        select { background-color: #1e293b; color: white; padding: 12px; font-size: 16px; border: 1px solid #3b82f6; border-radius: 5px; width: 100%; max-width: 350px; }
         
-        /* DROP ZONE */
-        .drop-zone { width: 90%; max-width: 600px; height: 200px; border: 2px dashed #475569; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #1e293b; margin-top: 20px; transition: all 0.3s; opacity: 0.5; pointer-events: none; text-align: center; padding: 10px; box-sizing: border-box; }
-        .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: all; cursor: pointer; }
+        /* DROP ZONE - LOCKED BY DEFAULT */
+        .drop-zone { width: 100%; max-width: 600px; height: 180px; border: 2px dashed #475569; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #1e293b; margin-top: 20px; transition: all 0.3s; opacity: 0.4; pointer-events: none; /* LOCKED */ text-align: center; padding: 10px; box-sizing: border-box; }
+        
+        /* UNLOCKED STATE */
+        .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: auto; cursor: pointer; background-color: #1e293b; }
         .drop-zone.loading { border-color: #fbbf24; cursor: wait; }
         
-        /* ANIMATION FOR LOADING */
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .spinning { animation: spin 2s linear infinite; display: inline-block; }
 
-        .legal-box { background-color: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; width: 90%; max-width: 600px; font-size: 14px; color: #cbd5e1; display: flex; align-items: flex-start; gap: 15px; box-sizing: border-box; }
-        .legal-box input { margin-top: 4px; transform: scale(1.5); flex-shrink: 0; }
+        /* LEGAL BOX - NOW CLICKABLE */
+        .legal-box { background-color: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; width: 100%; max-width: 600px; font-size: 14px; color: #cbd5e1; display: flex; align-items: center; gap: 15px; box-sizing: border-box; cursor: pointer; transition: background 0.2s; }
+        .legal-box:active { background-color: #334155; }
+        .legal-box input { transform: scale(1.5); flex-shrink: 0; }
         
-        /* ACCESS CODE INPUT & LINK */
-        .code-container { margin-top: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .code-input { padding: 8px; background: #1e293b; border: 1px solid #64748b; color: white; border-radius: 5px; width: 200px; text-align: center; letter-spacing: 2px; }
-        .request-link { color: #3b82f6; font-size: 13px; text-decoration: none; border-bottom: 1px dashed #3b82f6; opacity: 0.8; transition: opacity 0.2s; }
-        .request-link:hover { opacity: 1; }
+        /* INPUTS */
+        .code-container { margin-top: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .code-input { padding: 10px; background: #1e293b; border: 1px solid #64748b; color: white; border-radius: 5px; width: 200px; text-align: center; letter-spacing: 2px; font-size: 16px; }
+        .request-link { color: #3b82f6; font-size: 14px; padding: 10px; display: inline-block; }
 
-        /* HELP TEXT SECTION */
-        .help-text { margin-top: 20px; text-align: center; color: #64748b; font-size: 13px; max-width: 600px; line-height: 1.6; }
-        .tag-container { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 5px; }
-        .tag { background: #1e293b; padding: 4px 8px; border-radius: 4px; border: 1px solid #334155; font-size: 12px; }
+        /* TEXT LIST (NOT BUTTONS) */
+        .help-text { margin-top: 20px; text-align: center; color: #64748b; font-size: 13px; max-width: 600px; }
+        .list-item { color: #94a3b8; display: block; margin: 4px 0; }
 
-        /* REPORT AREA */
-        #report-container { display: none; width: 90%; max-width: 800px; background-color: #1e293b; border: 1px solid #475569; border-radius: 8px; margin-top: 30px; padding: 20px; box-sizing: border-box; overflow-x: hidden; }
-        .btn-container { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
-        .btn-download { background-color: #22c55e; color: black; font-weight: bold; padding: 15px 30px; border-radius: 5px; text-decoration: none; flex: 1; min-width: 200px; text-align: center; }
-        .btn-upgrade { background-color: #3b82f6; color: white; font-weight: bold; padding: 15px 30px; border-radius: 5px; text-decoration: none; flex: 1; min-width: 200px; text-align: center; }
-        pre { white-space: pre-wrap; word-wrap: break-word; color: #cbd5e1; font-family: 'Courier New', monospace; font-size: 13px; }
+        /* REPORT */
+        #report-container { display: none; width: 100%; max-width: 800px; background-color: #1e293b; border: 1px solid #475569; border-radius: 8px; margin-top: 30px; padding: 20px; box-sizing: border-box; }
+        .btn-download { display: block; background-color: #22c55e; color: black; font-weight: bold; padding: 15px; border-radius: 5px; text-decoration: none; text-align: center; margin-top: 10px; }
+        pre { white-space: pre-wrap; word-wrap: break-word; color: #cbd5e1; font-family: monospace; font-size: 13px; }
     </style>
 </head>
 <body>
-    <div style="text-align: center;"><h1>🛡️ COMPLIANCE CORE</h1><p>BETA // AUDIT READINESS PLATFORM</p></div>
+    <div style="text-align: center;"><h1>🛡️ COMPLIANCE CORE</h1><p>BETA // AUDIT READINESS</p></div>
 
     <div class="select-container">
-        <label style="color: #94a3b8; display: block; margin-bottom: 5px;">SELECT STANDARD:</label>
         <select id="standard-select">
-            <option value="NIST 800-171 Rev 2">NIST 800-171 (Defense/CMMC)</option>
+            <option value="NIST 800-171 Rev 2">NIST 800-171 (Defense)</option>
             <option value="HIPAA Privacy Rule">HIPAA (Healthcare)</option>
-            <option value="OSHA General Industry">OSHA (Workplace Safety)</option>
         </select>
     </div>
 
     <div class="code-container">
         <input type="text" id="access-code" class="code-input" placeholder="ENTER PRO CODE">
-        <a href="mailto:contact@compliance-core.com?subject=Request%20Pro%20Access&body=Hi%20Compliance%20Core%20Team%2C%0A%0AI%20would%20like%20to%20purchase%20a%20Pro%20Access%20Code%20for%20%2449.%0A%0APlease%20send%20the%20invoice." class="request-link">
-            Need a code? Request Access ($49)
-        </a>
+        <a href="mailto:contact@compliance-core.com?subject=Request%20Pro%20Access" class="request-link">Need a code? Request Access ($49)</a>
     </div>
 
-    <div class="legal-box">
+    <label class="legal-box">
         <input type="checkbox" id="legal-check">
-        <div style="line-height: 1.4;"><strong>REQUIRED:</strong> I understand this is for <span style="color:#ef4444; font-weight:bold;">educational purposes only</span>. Not legal advice.</div>
-    </div>
+        <div style="line-height: 1.4;"><strong>REQUIRED:</strong> Tap here to accept educational use only.</div>
+    </label>
 
     <div id="drop-zone" class="drop-zone">
         <div id="icon-display" style="font-size: 40px;">📂</div>
-        <h3 id="status-text">Check Box Above to Unlock</h3>
+        <h3 id="status-text">Tap Checkbox to Unlock</h3>
     </div>
 
     <div class="help-text">
-        <p><strong>SUGGESTED DOCUMENTS TO UPLOAD:</strong></p>
-        <div class="tag-container">
-            <span class="tag">📄 Employee Handbook</span>
-            <span class="tag">🔒 Access Control Policy</span>
-            <span class="tag">🚨 Incident Response Plan</span>
-            <span class="tag">📘 System Security Plan (SSP)</span>
-        </div>
+        <p><strong>WORKS WITH:</strong></p>
+        <span class="list-item">📄 Employee Handbooks</span>
+        <span class="list-item">🔒 Access Control Policies</span>
+        <span class="list-item">🚨 Incident Response Plans</span>
     </div>
 
     <div id="report-container">
-        <div class="btn-container">
-            <a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD REPORT</a>
-            <a id="upgrade-link" href="mailto:contact@compliance-core.com?subject=Unlock%20Pro" class="btn-upgrade">⭐ UNLOCK PRO</a>
-        </div>
         <h3 id="report-title">📋 RESULTS</h3>
         <pre id="report-content">Analysis...</pre>
+        <a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD REPORT</a>
     </div>
 
     <script>
@@ -111,22 +95,19 @@
         const reportContainer = document.getElementById('report-container');
         const reportContent = document.getElementById('report-content');
         const downloadLink = document.getElementById('download-link');
-        const upgradeLink = document.getElementById('upgrade-link');
 
+        // Logic: When you check the box, the drop zone unlocks
         legalCheck.addEventListener('change', (e) => {
-            dropZone.classList.toggle('unlocked', e.target.checked);
-            statusText.innerText = e.target.checked ? "Tap to Upload Policy PDF" : "Check Box Above to Unlock";
+            if (e.target.checked) {
+                dropZone.classList.add('unlocked');
+                statusText.innerText = "Tap Here to Upload PDF";
+            } else {
+                dropZone.classList.remove('unlocked');
+                statusText.innerText = "Tap Checkbox to Unlock";
+            }
         });
 
-        dropZone.addEventListener('click', () => { if (legalCheck.checked) document.createElement('input').click(); });
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); }, false));
-        
-        dropZone.addEventListener('drop', (e) => {
-            if (!legalCheck.checked) return;
-            handleFile(e.dataTransfer.files[0]);
-        }, false);
-
-        // Mobile Click Logic
+        // Trigger file upload on click
         dropZone.addEventListener('click', () => {
             if (legalCheck.checked) {
                 const input = document.createElement('input');
@@ -138,10 +119,9 @@
         });
 
         function handleFile(file) {
-            // UI Updates for Loading
-            statusText.innerText = "🧠 AI Analyzing...";
-            iconDisplay.innerText = "⚙️"; // Change icon to gear
-            iconDisplay.classList.add('spinning'); // Start spin animation
+            statusText.innerText = "Analyzing...";
+            iconDisplay.innerText = "⚙️"; 
+            iconDisplay.classList.add('spinning');
             dropZone.classList.add('loading');
             reportContainer.style.display = 'none';
 
@@ -150,33 +130,32 @@
             formData.append('standard', document.getElementById('standard-select').value);
             formData.append('access_code', accessCodeInput.value); 
 
-            // Auto-detect localhost vs production
-            const uploadUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000/upload' : '/upload'; 
+            // Handle Localhost vs Prod
+            const uploadUrl = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1') ? 'http://127.0.0.1:8000/upload' : '/upload'; 
 
             fetch(uploadUrl, { method: 'POST', body: formData })
             .then(r => r.json())
             .then(data => {
-                // Remove Loading State
                 dropZone.classList.remove('loading');
                 iconDisplay.classList.remove('spinning');
                 iconDisplay.innerText = "✅";
-                statusText.innerText = "Analysis Complete";
+                statusText.innerText = "Done";
                 
-                // Show Results
                 reportContainer.style.display = 'block';
                 reportContent.innerText = data.report;
                 downloadLink.href = data.pdf_url;
-                reportContainer.scrollIntoView({ behavior: 'smooth' });
-
-                // If Pro Code was used, update UI
+                
+                // Check if Pro
                 if (data.is_pro) {
-                    upgradeLink.style.display = 'none';
                     downloadLink.innerText = "📄 DOWNLOAD OFFICIAL CERTIFICATE";
+                    downloadLink.style.backgroundColor = "#fbbf24"; // Gold for Pro
                 }
+
+                reportContainer.scrollIntoView({ behavior: 'smooth' });
             })
             .catch(e => { 
                 console.error(e); 
-                statusText.innerText = "Error - Try Again"; 
+                statusText.innerText = "Error. Try again."; 
                 iconDisplay.classList.remove('spinning');
                 iconDisplay.innerText = "❌";
             });
