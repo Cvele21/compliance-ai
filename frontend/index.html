@@ -3,163 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compliance Core | AI Policy Auditor</title>
-    
-    <meta name="description" content="Automated compliance auditing for Defense Contractors.">
-    <meta property="og:title" content="Compliance Core | AI Policy Auditor">
-    <meta property="og:description" content="75% of contractors fail NIST audits. Pre-check your compliance instantly with AI.">
-    
+    <title>Compliance Core</title>
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        
-        h1 { margin-bottom: 5px; font-size: 24px; }
-        p { margin-top: 0; color: #64748b; font-size: 14px; letter-spacing: 1px; }
-
-        .select-container { margin-top: 20px; text-align: center; width: 100%; }
-        select { background-color: #1e293b; color: white; padding: 12px; font-size: 16px; border: 1px solid #3b82f6; border-radius: 5px; width: 100%; max-width: 350px; }
-        
-        /* DROP ZONE - LOCKED BY DEFAULT */
-        .drop-zone { width: 100%; max-width: 600px; height: 180px; border: 2px dashed #475569; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #1e293b; margin-top: 20px; transition: all 0.3s; opacity: 0.4; pointer-events: none; /* LOCKED */ text-align: center; padding: 10px; box-sizing: border-box; }
-        
-        /* UNLOCKED STATE */
-        .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: auto; cursor: pointer; background-color: #1e293b; }
-        .drop-zone.loading { border-color: #fbbf24; cursor: wait; }
-        
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .spinning { animation: spin 2s linear infinite; display: inline-block; }
-
-        /* LEGAL BOX - NOW CLICKABLE */
-        .legal-box { background-color: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; width: 100%; max-width: 600px; font-size: 14px; color: #cbd5e1; display: flex; align-items: center; gap: 15px; box-sizing: border-box; cursor: pointer; transition: background 0.2s; }
-        .legal-box:active { background-color: #334155; }
-        .legal-box input { transform: scale(1.5); flex-shrink: 0; }
+        body { background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
+        .container { width: 100%; max-width: 600px; text-align: center; }
         
         /* INPUTS */
-        .code-container { margin-top: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .code-input { padding: 10px; background: #1e293b; border: 1px solid #64748b; color: white; border-radius: 5px; width: 200px; text-align: center; letter-spacing: 2px; font-size: 16px; }
-        .request-link { color: #3b82f6; font-size: 14px; padding: 10px; display: inline-block; }
+        select { background: #1e293b; color: white; padding: 12px; border: 1px solid #3b82f6; border-radius: 5px; width: 100%; font-size: 16px; margin-top: 10px; }
+        
+        /* DROP ZONE */
+        .drop-zone { border: 2px dashed #475569; border-radius: 10px; padding: 40px; margin-top: 20px; background: #1e293b; transition: 0.3s; opacity: 0.5; pointer-events: none; }
+        .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: auto; }
+        .drop-zone.error { border-color: #ef4444; background: #450a0a; } /* Red for Error */
+        
+        /* LEGAL CHECK */
+        .legal-label { display: flex; align-items: center; gap: 10px; background: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; cursor: pointer; text-align: left; font-size: 13px; }
 
-        /* TEXT LIST (NOT BUTTONS) */
-        .help-text { margin-top: 20px; text-align: center; color: #64748b; font-size: 13px; max-width: 600px; }
-        .list-item { color: #94a3b8; display: block; margin: 4px 0; }
-
-        /* REPORT */
-        #report-container { display: none; width: 100%; max-width: 800px; background-color: #1e293b; border: 1px solid #475569; border-radius: 8px; margin-top: 30px; padding: 20px; box-sizing: border-box; }
-        .btn-download { display: block; background-color: #22c55e; color: black; font-weight: bold; padding: 15px; border-radius: 5px; text-decoration: none; text-align: center; margin-top: 10px; }
-        pre { white-space: pre-wrap; word-wrap: break-word; color: #cbd5e1; font-family: monospace; font-size: 13px; }
+        /* REPORT AREA */
+        #report-area { display: none; background: #1e293b; border: 1px solid #475569; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: left; }
+        .btn-download { display: block; background: #22c55e; color: black; text-align: center; padding: 15px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px; cursor: pointer; border: none; width: 100%; font-size: 16px; }
+        pre { white-space: pre-wrap; font-family: monospace; color: #cbd5e1; font-size: 12px; }
     </style>
 </head>
 <body>
-    <div style="text-align: center;"><h1>🛡️ COMPLIANCE CORE</h1><p>BETA // AUDIT READINESS</p></div>
 
-    <div class="select-container">
-        <select id="standard-select">
-            <option value="NIST 800-171 Rev 2">NIST 800-171 (Defense)</option>
-            <option value="HIPAA Privacy Rule">HIPAA (Healthcare)</option>
-        </select>
-    </div>
+<div class="container">
+    <h1>🛡️ COMPLIANCE CORE</h1>
+    <p>BETA // AUDIT READINESS</p>
 
-    <div class="code-container">
-        <input type="text" id="access-code" class="code-input" placeholder="ENTER PRO CODE">
-        <a href="mailto:contact@compliance-core.com?subject=Request%20Pro%20Access" class="request-link">Need a code? Request Access ($49)</a>
-    </div>
+    <select id="standard">
+        <option value="NIST 800-171">NIST 800-171 (Defense)</option>
+        <option value="HIPAA Privacy">HIPAA (Healthcare)</option>
+        <option value="OSHA Safety">OSHA (Workplace Safety)</option>
+    </select>
 
-    <label class="legal-box">
+    <label class="legal-label">
         <input type="checkbox" id="legal-check">
-        <div style="line-height: 1.4;"><strong>REQUIRED:</strong> Tap here to accept educational use only.</div>
+        <div><strong>REQUIRED:</strong> Tap here to accept educational use only. Not legal advice.</div>
     </label>
 
     <div id="drop-zone" class="drop-zone">
-        <div id="icon-display" style="font-size: 40px;">📂</div>
-        <h3 id="status-text">Tap Checkbox to Unlock</h3>
+        <div id="icon" style="font-size: 40px;">🔒</div>
+        <h3 id="status">Tap Checkbox to Unlock</h3>
     </div>
 
-    <div class="help-text">
-        <p><strong>WORKS WITH:</strong></p>
-        <span class="list-item">📄 Employee Handbooks</span>
-        <span class="list-item">🔒 Access Control Policies</span>
-        <span class="list-item">🚨 Incident Response Plans</span>
+    <div id="report-area">
+        <h3>📋 ANALYSIS COMPLETE</h3>
+        <pre id="report-text">...</pre>
+        
+        <form action="/download_report" method="POST" target="_blank">
+            <input type="hidden" name="report_content" id="hidden-content">
+            <button type="submit" class="btn-download">📄 DOWNLOAD REPORT (.TXT)</button>
+        </form>
     </div>
+</div>
 
-    <div id="report-container">
-        <h3 id="report-title">📋 RESULTS</h3>
-        <pre id="report-content">Analysis...</pre>
-        <a id="download-link" href="#" class="btn-download" target="_blank">📄 DOWNLOAD REPORT</a>
-    </div>
-
-    <script>
-        const dropZone = document.getElementById('drop-zone');
-        const statusText = document.getElementById('status-text');
-        const iconDisplay = document.getElementById('icon-display');
-        const legalCheck = document.getElementById('legal-check');
-        const accessCodeInput = document.getElementById('access-code');
-        const reportContainer = document.getElementById('report-container');
-        const reportContent = document.getElementById('report-content');
-        const downloadLink = document.getElementById('download-link');
-
-        // Logic: When you check the box, the drop zone unlocks
-        legalCheck.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                dropZone.classList.add('unlocked');
-                statusText.innerText = "Tap Here to Upload PDF";
-            } else {
-                dropZone.classList.remove('unlocked');
-                statusText.innerText = "Tap Checkbox to Unlock";
-            }
-        });
-
-        // Trigger file upload on click
-        dropZone.addEventListener('click', () => {
-            if (legalCheck.checked) {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'application/pdf';
-                input.onchange = e => handleFile(e.target.files[0]);
-                input.click();
-            }
-        });
-
-        function handleFile(file) {
-            statusText.innerText = "Analyzing...";
-            iconDisplay.innerText = "⚙️"; 
-            iconDisplay.classList.add('spinning');
-            dropZone.classList.add('loading');
-            reportContainer.style.display = 'none';
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('standard', document.getElementById('standard-select').value);
-            formData.append('access_code', accessCodeInput.value); 
-
-            // Handle Localhost vs Prod
-            const uploadUrl = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1') ? 'http://127.0.0.1:8000/upload' : '/upload'; 
-
-            fetch(uploadUrl, { method: 'POST', body: formData })
-            .then(r => r.json())
-            .then(data => {
-                dropZone.classList.remove('loading');
-                iconDisplay.classList.remove('spinning');
-                iconDisplay.innerText = "✅";
-                statusText.innerText = "Done";
-                
-                reportContainer.style.display = 'block';
-                reportContent.innerText = data.report;
-                downloadLink.href = data.pdf_url;
-                
-                // Check if Pro
-                if (data.is_pro) {
-                    downloadLink.innerText = "📄 DOWNLOAD OFFICIAL CERTIFICATE";
-                    downloadLink.style.backgroundColor = "#fbbf24"; // Gold for Pro
-                }
-
-                reportContainer.scrollIntoView({ behavior: 'smooth' });
-            })
-            .catch(e => { 
-                console.error(e); 
-                statusText.innerText = "Error. Try again."; 
-                iconDisplay.classList.remove('spinning');
-                iconDisplay.innerText = "❌";
-            });
+<script>
+    const legalCheck = document.getElementById('legal-check');
+    const dropZone = document.getElementById('drop-zone');
+    const status = document.getElementById('status');
+    const reportArea = document.getElementById('report-area');
+    
+    // Unlock Logic
+    legalCheck.addEventListener('change', (e) => {
+        if(e.target.checked) {
+            dropZone.classList.add('unlocked');
+            status.innerText = "Tap Here to Upload PDF";
+        } else {
+            dropZone.classList.remove('unlocked');
+            status.innerText = "Tap Checkbox to Unlock";
         }
-    </script>
+    });
+
+    // File Selection
+    dropZone.addEventListener('click', () => {
+        if(!legalCheck.checked) return;
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => handleUpload(e.target.files[0]);
+        input.click();
+    });
+
+    function handleUpload(file) {
+        status.innerText = "Analyzing...";
+        dropZone.classList.remove('error'); // Reset error state
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('standard', document.getElementById('standard').value);
+
+        fetch('/upload', { method: 'POST', body: formData })
+        .then(async response => {
+            // FIX 3: HANDLE SECURITY ERRORS
+            if (!response.ok) {
+                let err = await response.json();
+                throw new Error(err.detail); // Triggers the .catch block
+            }
+            return response.json();
+        })
+        .then(data => {
+            status.innerText = "Done ✅";
+            reportArea.style.display = 'block';
+            document.getElementById('report-text').innerText = data.report;
+            document.getElementById('hidden-content').value = data.report; // Prepares download
+        })
+        .catch(error => {
+            // SHOW ERROR IN RED
+            dropZone.classList.add('error');
+            status.innerText = "❌ " + error.message;
+            console.error(error);
+        });
+    }
+</script>
+
 </body>
 </html>
