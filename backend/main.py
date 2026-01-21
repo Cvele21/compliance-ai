@@ -52,11 +52,10 @@ async def upload_file(
         raise HTTPException(status_code=400, detail="INVALID FILE: Please upload a valid PDF.")
 
     # 3. GENERATE REPORT TEXT
-    # (This is the content you will download)
     report_text = f"""
     COMPLIANCE CORE AUDIT REPORT
     ============================
-    DATE: 2026-01-20
+    DATE: 2026-01-21
     FILE: {file.filename}
     STANDARD: {standard}
     STATUS: PRELIMINARY SCAN COMPLETE
@@ -70,12 +69,12 @@ async def upload_file(
     - Control 3.8.3 (Media Protection): No mention of FIPS 140-2.
 
     [3] RECOMMENDATION
-    Review Section 4 of your policy. Ensure DIBNet reporting guidelines are included.
+    Review Section 4 of your policy. Ensure reporting guidelines are included.
     
     -- END OF REPORT --
     """
 
-    # 4. RETURN DATA (With a way to download the text)
+    # 4. RETURN DATA
     return {
         "status": "success",
         "report": report_text,
