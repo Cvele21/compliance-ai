@@ -16,13 +16,17 @@
         .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: auto; }
         .drop-zone.error { border-color: #ef4444; background: #450a0a; } 
         
-        /* LEGAL CHECK */
-        .legal-label { display: flex; align-items: center; gap: 10px; background: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; cursor: pointer; text-align: left; font-size: 13px; }
-
         /* REPORT AREA */
         #report-area { display: none; background: #1e293b; border: 1px solid #475569; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: left; }
-        .btn-download { display: block; background: #22c55e; color: black; text-align: center; padding: 15px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px; cursor: pointer; border: none; width: 100%; font-size: 16px; }
-        pre { white-space: pre-wrap; font-family: monospace; color: #cbd5e1; font-size: 12px; }
+        pre { white-space: pre-wrap; font-family: monospace; color: #cbd5e1; font-size: 12px; border-bottom: 1px solid #475569; padding-bottom: 20px; }
+
+        /* PAYWALL SECTION */
+        .paywall { background: #0f172a; padding: 15px; border-radius: 5px; margin-top: 15px; text-align: center; border: 1px solid #f59e0b; }
+        .btn-download { display: block; background: #f59e0b; color: black; text-align: center; padding: 15px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px; cursor: pointer; border: none; width: 100%; font-size: 16px; }
+        .btn-download:hover { background: #d97706; }
+        
+        .legal-label { display: flex; align-items: center; gap: 10px; background: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; cursor: pointer; text-align: left; font-size: 13px; }
+
     </style>
 </head>
 <body>
@@ -37,8 +41,6 @@
         <option value="OSHA Safety">OSHA (Workplace Safety)</option>
     </select>
 
-    <input type="text" id="access-code" placeholder="Enter Access Code (Required)" />
-
     <label class="legal-label">
         <input type="checkbox" id="legal-check">
         <div><strong>REQUIRED:</strong> Tap here to accept educational use only. Not legal advice.</div>
@@ -50,13 +52,21 @@
     </div>
 
     <div id="report-area">
-        <h3>📋 ANALYSIS COMPLETE</h3>
+        <h3>📋 ANALYSIS PREVIEW</h3>
         <pre id="report-text">...</pre>
         
-        <form action="/download_report" method="POST" target="_blank">
-            <input type="hidden" name="report_content" id="hidden-content">
-            <button type="submit" class="btn-download">📄 DOWNLOAD REPORT (.TXT)</button>
-        </form>
+        <div class="paywall">
+            <h3>🔓 UNLOCK FULL REPORT</h3>
+            <p style="font-size: 12px; color: #94a3b8;">Enter your "PRO" code to download the official file.</p>
+            
+            <form action="/download_report" method="POST" target="_blank">
+                <input type="hidden" name="report_content" id="hidden-content">
+                
+                <input type="text" name="access_code" placeholder="Enter Access Code (e.g. PRO-2026)" required>
+                
+                <button type="submit" class="btn-download">💾 VERIFY & DOWNLOAD</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -87,14 +97,12 @@
     });
 
     function handleUpload(file) {
-        status.innerText = "Authenticating...";
+        status.innerText = "Analyzing...";
         dropZone.classList.remove('error');
         
         const formData = new FormData();
         formData.append('file', file);
         formData.append('standard', document.getElementById('standard').value);
-        // SEND THE CODE TO SERVER
-        formData.append('access_code', document.getElementById('access-code').value);
 
         fetch('/upload', { method: 'POST', body: formData })
         .then(async response => {
