@@ -9,12 +9,12 @@
         .container { width: 100%; max-width: 600px; text-align: center; }
         
         /* INPUTS */
-        select { background: #1e293b; color: white; padding: 12px; border: 1px solid #3b82f6; border-radius: 5px; width: 100%; font-size: 16px; margin-top: 10px; }
+        select, input[type="text"] { background: #1e293b; color: white; padding: 12px; border: 1px solid #3b82f6; border-radius: 5px; width: 100%; font-size: 16px; margin-top: 10px; box-sizing: border-box; }
         
         /* DROP ZONE */
         .drop-zone { border: 2px dashed #475569; border-radius: 10px; padding: 40px; margin-top: 20px; background: #1e293b; transition: 0.3s; opacity: 0.5; pointer-events: none; }
         .drop-zone.unlocked { border-color: #3b82f6; opacity: 1; pointer-events: auto; }
-        .drop-zone.error { border-color: #ef4444; background: #450a0a; } /* Red for Error */
+        .drop-zone.error { border-color: #ef4444; background: #450a0a; } 
         
         /* LEGAL CHECK */
         .legal-label { display: flex; align-items: center; gap: 10px; background: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; cursor: pointer; text-align: left; font-size: 13px; }
@@ -36,6 +36,8 @@
         <option value="HIPAA Privacy">HIPAA (Healthcare)</option>
         <option value="OSHA Safety">OSHA (Workplace Safety)</option>
     </select>
+
+    <input type="text" id="access-code" placeholder="Enter Access Code (Required)" />
 
     <label class="legal-label">
         <input type="checkbox" id="legal-check">
@@ -85,19 +87,20 @@
     });
 
     function handleUpload(file) {
-        status.innerText = "Analyzing...";
-        dropZone.classList.remove('error'); // Reset error state
+        status.innerText = "Authenticating...";
+        dropZone.classList.remove('error');
         
         const formData = new FormData();
         formData.append('file', file);
         formData.append('standard', document.getElementById('standard').value);
+        // SEND THE CODE TO SERVER
+        formData.append('access_code', document.getElementById('access-code').value);
 
         fetch('/upload', { method: 'POST', body: formData })
         .then(async response => {
-            // FIX 3: HANDLE SECURITY ERRORS
             if (!response.ok) {
                 let err = await response.json();
-                throw new Error(err.detail); // Triggers the .catch block
+                throw new Error(err.detail); 
             }
             return response.json();
         })
@@ -105,13 +108,11 @@
             status.innerText = "Done ✅";
             reportArea.style.display = 'block';
             document.getElementById('report-text').innerText = data.report;
-            document.getElementById('hidden-content').value = data.report; // Prepares download
+            document.getElementById('hidden-content').value = data.report;
         })
         .catch(error => {
-            // SHOW ERROR IN RED
             dropZone.classList.add('error');
             status.innerText = "❌ " + error.message;
-            console.error(error);
         });
     }
 </script>
