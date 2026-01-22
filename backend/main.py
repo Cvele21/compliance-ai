@@ -7,7 +7,6 @@ from datetime import datetime
 
 app = FastAPI()
 
-# --- CONFIGURATION ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -26,12 +25,10 @@ async def log_requests(request: Request, call_next):
         print(f"👀 VISITOR: IP={ip} | Path={request.url.path}")
     return await call_next(request)
 
-# --- SECURITY CHECK ---
 def is_secure_pdf(file_content: bytes) -> bool:
     header = file_content[:4]
     return header == b'%PDF'
 
-# --- GENERATE REPORT (SAFE CHARACTERS) ---
 def generate_audit_text(filename, standard):
     score = random.randint(65, 88) 
     
@@ -40,7 +37,6 @@ def generate_audit_text(filename, standard):
     elif score >= 70: grade = "C (AT RISK)"
     else: grade = "D (CRITICAL FAIL)"
 
-    # USING SAFE CHARACTERS FOR MOBILE
     bars = "=" * (score // 5)
     empty = "-" * ((100 - score) // 5)
     
@@ -89,27 +85,18 @@ Automated analysis. Not legal advice.
 ============================================================
 """
 
-# --- UPLOAD ENDPOINT ---
+# --- UPLOAD: ALWAYS FREE ---
 @app.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
-    standard: str = Form(...),
-    access_code: str = Form("") # Defaults to empty if missing
+    standard: str = Form(...)
 ):
-    print(f"📥 ANALYZING: {file.filename} with code: {access_code}")
-
-    # 1. 🔒 CHECK ACCESS CODE
-    # The strip() removes accidental spaces
-    if access_code.strip() != "PRO-2026":
-        print("🚨 ACCESS DENIED: Wrong Code")
-        raise HTTPException(status_code=403, detail="ACCESS DENIED: Invalid Access Code.")
-
-    # 2. CHECK FILE SECURITY
+    print(f"📥 FREE PREVIEW: {file.filename}")
+    
     content = await file.read()
     if not is_secure_pdf(content):
         raise HTTPException(status_code=400, detail="INVALID FILE: Please upload a valid PDF.")
 
-    # 3. GENERATE REPORT
     report_text = generate_audit_text(file.filename, standard)
 
     return {
@@ -118,9 +105,27 @@ async def upload_file(
         "filename": f"Audit_Report_{file.filename}.txt"
     }
 
-# --- DOWNLOAD ENDPOINT ---
+# --- DOWNLOAD: PAYWALL LOCKED 🔒 ---
 @app.post("/download_report")
-async def download_report(report_content: str = Form(...)):
+async def download_report(
+    report_content: str = Form(...),
+    access_code: str = Form("")
+):
+    # 1. VERIFY THE CODE
+    if access_code.strip() != "PRO-2026":
+        # If code is wrong, return an Error HTML page
+        return HTMLResponse(content="""
+            <html>
+            <body style='background:#0f172a; color:#ef4444; font-family:sans-serif; text-align:center; padding-top:50px;'>
+                <h1>❌ ACCESS DENIED</h1>
+                <p>The code you entered is invalid.</p>
+                <p style='color:white;'>Please purchase a PRO license to download files.</p>
+                <button onclick="window.close()" style="padding:10px; cursor:pointer;">Close Tab</button>
+            </body>
+            </html>
+        """, status_code=403)
+
+    # 2. IF CODE IS GOOD, SEND FILE
     stream = io.BytesIO(report_content.encode())
     return StreamingResponse(
         stream, 
@@ -128,7 +133,6 @@ async def download_report(report_content: str = Form(...)):
         headers={"Content-Disposition": "attachment; filename=Audit_Report.txt"}
     )
 
-# --- SERVE FRONTEND ---
 @app.get("/", response_class=HTMLResponse)
 async def serve_home():
     try:
