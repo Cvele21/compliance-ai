@@ -105,7 +105,7 @@ async def upload_file(
         "filename": f"Audit_Report_{file.filename}.txt"
     }
 
-# --- DOWNLOAD: PAYWALL LOCKED 🔒 ---
+# --- DOWNLOAD: SALES FUNNEL 💰 ---
 @app.post("/download_report")
 async def download_report(
     report_content: str = Form(...),
@@ -113,17 +113,31 @@ async def download_report(
 ):
     # 1. VERIFY THE CODE
     if access_code.strip() != "PRO-2026":
-        # If code is wrong, return an Error HTML page
+        # RETURN THE "SALES PAGE" INSTEAD OF AN ERROR
         return HTMLResponse(content="""
             <html>
-            <body style='background:#0f172a; color:#ef4444; font-family:sans-serif; text-align:center; padding-top:50px;'>
-                <h1>❌ ACCESS DENIED</h1>
-                <p>The code you entered is invalid.</p>
-                <p style='color:white;'>Please purchase a PRO license to download files.</p>
-                <button onclick="window.close()" style="padding:10px; cursor:pointer;">Close Tab</button>
+            <body style='background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:40px; display:flex; flex-direction:column; align-items:center;'>
+                <div style='border:1px solid #f59e0b; padding:40px; border-radius:10px; max-width:500px;'>
+                    <h1 style='color:#f59e0b; margin-top:0;'>🔒 PRO FEATURE</h1>
+                    <p style='font-size:18px;'>Downloading the Official Audit Record is reserved for Pro members.</p>
+                    
+                    <div style='background:#1e293b; padding:20px; border-radius:5px; margin:20px 0; text-align:left;'>
+                        <p>✅ <strong>Official .TXT Audit Record</strong></p>
+                        <p>✅ <strong>Detailed Remediation Steps</strong></p>
+                        <p>✅ <strong>Unlimited Scans</strong></p>
+                    </div>
+
+                    <a href="mailto:sales@compliance-core.com?subject=I want to buy PRO Access ($49)" 
+                       style='background:#22c55e; color:black; text-decoration:none; padding:15px 30px; font-weight:bold; border-radius:5px; display:inline-block;'>
+                       GET ACCESS NOW ($49)
+                    </a>
+                    
+                    <br><br>
+                    <button onclick="history.back()" style='background:transparent; border:none; color:#94a3b8; cursor:pointer;'>Go Back</button>
+                </div>
             </body>
             </html>
-        """, status_code=403)
+        """)
 
     # 2. IF CODE IS GOOD, SEND FILE
     stream = io.BytesIO(report_content.encode())
