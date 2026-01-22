@@ -23,8 +23,11 @@
         /* PAYWALL SECTION */
         .paywall { background: #0f172a; padding: 15px; border-radius: 5px; margin-top: 15px; text-align: center; border: 1px solid #f59e0b; }
         .btn-download { display: block; background: #f59e0b; color: black; text-align: center; padding: 15px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px; cursor: pointer; border: none; width: 100%; font-size: 16px; }
-        .btn-download:hover { background: #d97706; }
+        .btn-share { background: transparent; color: #3b82f6; border: 1px solid #3b82f6; width: 100%; margin-top: 10px; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 14px; }
         
+        .sales-link { display: block; margin-top: 10px; color: #94a3b8; font-size: 12px; text-decoration: none; }
+        .sales-link:hover { color: white; text-decoration: underline; }
+
         .legal-label { display: flex; align-items: center; gap: 10px; background: #1e293b; border: 1px solid #ef4444; padding: 15px; border-radius: 8px; margin-top: 20px; cursor: pointer; text-align: left; font-size: 13px; }
 
     </style>
@@ -57,15 +60,17 @@
         
         <div class="paywall">
             <h3>🔓 UNLOCK FULL REPORT</h3>
-            <p style="font-size: 12px; color: #94a3b8;">Enter your "PRO" code to download the official file.</p>
             
             <form action="/download_report" method="POST" target="_blank">
                 <input type="hidden" name="report_content" id="hidden-content">
                 
-                <input type="text" name="access_code" placeholder="Enter Access Code (e.g. PRO-2026)" required>
+                <input type="text" name="access_code" placeholder="Enter Access Code" required>
+                <a href="mailto:sales@compliance-core.com?subject=Requesting PRO Access" class="sales-link">Need a code? Request Access ($49)</a>
                 
                 <button type="submit" class="btn-download">💾 VERIFY & DOWNLOAD</button>
             </form>
+            
+            <button onclick="shareTool()" class="btn-share">📤 SHARE THIS TOOL</button>
         </div>
     </div>
 </div>
@@ -122,6 +127,22 @@
             dropZone.classList.add('error');
             status.innerText = "❌ " + error.message;
         });
+    }
+
+    // SHARE FUNCTION (Mobile Friendly)
+    function shareTool() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Compliance Core',
+                text: 'Check out this automated audit tool for GovCon!',
+                url: window.location.href
+            })
+            .then(() => console.log('Successful share'))
+            .catch((error) => console.log('Error sharing', error));
+        } else {
+            // Fallback for desktop
+            alert("Copy this link to share: " + window.location.href);
+        }
     }
 </script>
 
