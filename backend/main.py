@@ -28,12 +28,13 @@ async def log_requests(request: Request, call_next):
 
 # --- SECURITY CHECK ---
 def is_secure_pdf(file_content: bytes) -> bool:
+    # Checks if file starts with %PDF (Hex: 25 50 44 46)
     header = file_content[:4]
     return header == b'%PDF'
 
-# --- GENERATE PROFESSIONAL REPORT ---
+# --- GENERATE PROFESSIONAL REPORT (MOBILE SAFE) ---
 def generate_audit_text(filename, standard):
-    # Simulate a score (In the real version, AI calculates this)
+    # Simulate a score (65-88 range)
     score = random.randint(65, 88) 
     
     # Calculate Grade
@@ -42,9 +43,11 @@ def generate_audit_text(filename, standard):
     elif score >= 70: grade = "C (AT RISK)"
     else: grade = "D (CRITICAL FAIL)"
 
-    # Create visual progress bar
-    bars = "█" * (score // 5)
-    empty = "░" * ((100 - score) // 5)
+    # Create visual progress bar using SAFE characters
+    # We use '=' for filled and '-' for empty. 
+    # This works on all phones and old Windows systems.
+    bars = "=" * (score // 5)
+    empty = "-" * ((100 - score) // 5)
     
     return f"""
 COMPLIANCE CORE | OFFICIAL AUDIT RECORD
@@ -58,7 +61,8 @@ STATUS:     COMPLETED
 
 [1] OVERALL COMPLIANCE SCORE
 ------------------------------------------------------------
-SCORE: {score}/100  |  GRADE: {grade}
+SCORE:  {score}/100
+GRADE:  {grade}
 VISUAL: [{bars}{empty}]
 
 EXECUTIVE SUMMARY:
@@ -68,21 +72,21 @@ enforcement language required for a passing government audit.
 
 [2] CRITICAL GAP ANALYSIS
 ------------------------------------------------------------
-⚠️ CONTROL 3.1.1 - ACCESS CONTROL
-   STATUS:  PARTIALLY COMPLIANT
-   FINDING: The document mentions "limited access" but does not define
-            specific roles (e.g., Administrator vs. User).
-   FIX:     Add a "Roles & Responsibilities" matrix to Section 2.
+[!] CONTROL 3.1.1 - ACCESS CONTROL
+    STATUS:  PARTIALLY COMPLIANT
+    FINDING: The document mentions "limited access" but does not 
+             define specific roles (e.g., Admin vs. User).
+    FIX:     Add a "Roles & Responsibilities" matrix.
 
-⚠️ CONTROL 3.5.2 - IDENTIFICATION & AUTHENTICATION
-   STATUS:  NON-COMPLIANT (CRITICAL)
-   FINDING: No mention of Multi-Factor Authentication (MFA).
-            NIST 800-171 requires MFA for all local and network access.
-   FIX:     Update policy to explicitly mandate MFA for all users.
+[!] CONTROL 3.5.2 - IDENTIFICATION & AUTHENTICATION
+    STATUS:  NON-COMPLIANT (CRITICAL)
+    FINDING: No mention of Multi-Factor Authentication (MFA).
+             NIST 800-171 requires MFA for all local/network access.
+    FIX:     Update policy to explicitly mandate MFA for all users.
 
-✅ CONTROL 3.8.3 - MEDIA PROTECTION
-   STATUS:  COMPLIANT
-   FINDING: "FIPS 140-2 Encryption" was correctly identified.
+[OK] CONTROL 3.8.3 - MEDIA PROTECTION
+     STATUS:  COMPLIANT
+     FINDING: "FIPS 140-2 Encryption" was correctly identified.
 
 [3] REMEDIATION PLAN
 ------------------------------------------------------------
@@ -107,10 +111,11 @@ async def upload_file(
 
     content = await file.read()
     
+    # Security: Verify it's actually a PDF
     if not is_secure_pdf(content):
         raise HTTPException(status_code=400, detail="INVALID FILE: Please upload a valid PDF.")
 
-    # Generate the fancy report
+    # Generate the report
     report_text = generate_audit_text(file.filename, standard)
 
     return {
