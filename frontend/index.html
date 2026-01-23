@@ -65,7 +65,7 @@
                 <input type="hidden" name="report_content" id="hidden-content">
                 
                 <input type="text" name="access_code" placeholder="Enter Access Code" required>
-                <a href="mailto:sales@compliance-core.com?subject=Requesting PRO Access" class="sales-link">Need a code? Request Access ($49)</a>
+                <a href="mailto:contact@compliance-core.com?subject=Requesting PRO Access" class="sales-link">Need a code? Request Access ($49)</a>
                 
                 <button type="submit" class="btn-download">💾 VERIFY & DOWNLOAD</button>
             </form>
@@ -129,7 +129,6 @@
         });
     }
 
-    // SHARE FUNCTION (Mobile Friendly)
     function shareTool() {
         if (navigator.share) {
             navigator.share({
@@ -140,7 +139,6 @@
             .then(() => console.log('Successful share'))
             .catch((error) => console.log('Error sharing', error));
         } else {
-            // Fallback for desktop
             alert("Copy this link to share: " + window.location.href);
         }
     }
